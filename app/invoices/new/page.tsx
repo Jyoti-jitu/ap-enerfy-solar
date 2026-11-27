@@ -6,9 +6,14 @@ import { CreateInvoiceClient } from "./create-invoice-client";
 export const dynamic = "force-dynamic";
 
 export default async function NewInvoicePage() {
-  const customerRecords = await db.query.customers.findMany({
-    orderBy: [asc(schema.customers.name)],
-  });
+  const [customerRecords, productRecords] = await Promise.all([
+    db.query.customers.findMany({
+      orderBy: [asc(schema.customers.name)],
+    }),
+    db.query.products.findMany({
+      orderBy: [asc(schema.products.name)],
+    }),
+  ]);
 
-  return <CreateInvoiceClient customers={customerRecords} />;
+  return <CreateInvoiceClient customers={customerRecords} products={productRecords} />;
 }

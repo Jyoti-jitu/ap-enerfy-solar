@@ -24,12 +24,17 @@ import {
   CustomerOption,
   NewCustomerFormState,
 } from "@/components/invoices/customer-select-combobox";
+import {
+  ProductSearchCombobox,
+  ProductOption,
+} from "@/components/invoices/product-search-combobox";
 
 interface CreateInvoiceClientProps {
   customers: CustomerOption[];
+  products?: ProductOption[];
 }
 
-export function CreateInvoiceClient({ customers }: CreateInvoiceClientProps) {
+export function CreateInvoiceClient({ customers, products = [] }: CreateInvoiceClientProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +52,8 @@ export function CreateInvoiceClient({ customers }: CreateInvoiceClientProps) {
     gstin: "",
     customerType: "residential",
   });
+
+  const [isProductSearchOpen, setIsProductSearchOpen] = useState(false);
 
   const [invoiceType, setInvoiceType] = useState("Tax Invoice");
   const [systemType, setSystemType] = useState("On-Grid");
@@ -106,7 +113,20 @@ export function CreateInvoiceClient({ customers }: CreateInvoiceClientProps) {
     }
   };
 
-  const handleAddItem = () => {
+  const handleSelectProduct = (productItem: {
+    productId?: string;
+    description: string;
+    hsnCode: string;
+    quantity: number;
+    unit: string;
+    unitPrice: number;
+    discount: number;
+    gstRate: number;
+  }) => {
+    setItems((prev) => [...prev, productItem]);
+  };
+
+  const handleAddBlankItem = () => {
     setItems((prev) => [
       ...prev,
       {
@@ -350,22 +370,54 @@ export function CreateInvoiceClient({ customers }: CreateInvoiceClientProps) {
 
       {/* Line Items Table Card */}
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-            <Calculator className="w-4 h-4 text-[#145C32]" />
-            Itemized Goods & Services
-          </h2>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleAddItem}
-            className="gap-1 h-8 text-xs border-[#145C32] text-[#145C32] hover:bg-[#E8F3E5]"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add Item</span>
-          </Button>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+              <Calculator className="w-4 h-4 text-[#145C32]" />
+              Itemized Goods & Services
+            </h2>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Click &quot;Add Item&quot; to search and recommend products from inventory by letter
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {!isProductSearchOpen && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsProductSearchOpen(true)}
+                className="gap-1.5 h-8 text-xs font-semibold border-[#145C32] text-[#145C32] hover:bg-[#E8F3E5] shadow-2xs"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Item</span>
+              </Button>
+            )}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAddBlankItem}
+              className="gap-1 h-8 text-xs border-slate-300 text-slate-700 hover:bg-slate-50"
+            >
+              <Plus className="w-3.5 h-3.5 text-slate-400" />
+              <span>Blank Line</span>
+            </Button>
+          </div>
         </div>
+
+        {/* Product Search & Inventory Recommendations Bar */}
+        {isProductSearchOpen && (
+          <ProductSearchCombobox
+            products={products}
+            isOpen={isProductSearchOpen}
+            onToggleOpen={setIsProductSearchOpen}
+            onSelectProduct={handleSelectProduct}
+            onClose={() => setIsProductSearchOpen(false)}
+          />
+        )}
 
         <div className="overflow-x-auto border border-slate-200 rounded-lg">
           <table className="w-full text-xs text-left">

@@ -1,5 +1,5 @@
 import { db, schema } from "@/db";
-import { eq, ilike, or, desc, sql } from "drizzle-orm";
+import { eq, ilike, or, and, desc, sql } from "drizzle-orm";
 import { roundToTwo } from "@/lib/utils";
 
 export interface ProductFilters {
@@ -14,7 +14,38 @@ export interface ProductFilters {
 export async function getProducts(filters: ProductFilters = {}) {
   const { search, category, brand, stockStatus, limit = 50, offset = 0 } = filters;
 
+  const conditions = [];
+
+  if (search && search.trim() !== "") {
+    const s = `%${search.trim()}%`;
+    conditions.push(
+      or(
+        ilike(schema.products.name, s),
+        ilike(schema.products.sku, s),
+        ilike(schema.products.category, s),
+        ilike(schema.products.brand, s),
+        ilike(schema.products.hsnCode, s)
+      )
+    );
+  }
+
+  if (category && category !== "All Categories" && category !== "all") {
+    conditions.push(eq(schema.products.category, category));
+  }
+
+  if (brand && brand !== "All Brands" && brand !== "all") {
+    conditions.push(eq(schema.products.brand, brand));
+  }
+
+  const whereClause =
+    conditions.length === 0
+      ? undefined
+      : conditions.length === 1
+      ? conditions[0]
+      : and(...conditions);
+
   const records = await db.query.products.findMany({
+    where: whereClause,
     orderBy: [desc(schema.products.createdAt)],
     limit,
     offset,
