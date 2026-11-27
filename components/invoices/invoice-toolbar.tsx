@@ -116,8 +116,8 @@ export function InvoiceToolbar({
   };
 
   return (
-    <div className="invoice-toolbar-root bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 sticky top-0 z-40 shadow-sm">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+    <div className="invoice-toolbar-root bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 sticky top-0 z-40 shadow-sm w-full">
+      <div className="w-full flex flex-wrap items-center justify-between gap-3 px-1 sm:px-2">
         {/* Left: Back & Title */}
         <div className="flex items-center gap-3">
           <Button

@@ -64,7 +64,7 @@ export function EditInvoiceClient({ invoice }: EditInvoiceClientProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-6 pb-16 p-4 md:p-6">
+    <form onSubmit={handleSubmit} className="w-full space-y-6 pb-16">
       {/* Top Header */}
       <div className="flex items-center justify-between border-b border-slate-200 pb-4">
         <div className="flex items-center gap-3">

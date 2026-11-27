@@ -22,6 +22,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const [showHelp, setShowHelp] = useState(false);
 
+  // Dedicated full-screen routes that bypass the dashboard sidebar & header
+  const isFullScreenPage =
+    Boolean(pathname?.startsWith("/invoices/") && pathname?.endsWith("/preview"));
+
+  if (isFullScreenPage) {
+    return (
+      <main className="min-h-screen w-full bg-slate-100 dark:bg-slate-950">
+        {children}
+        <Toaster position="top-right" />
+      </main>
+    );
+  }
+
   // Authentication & error routes bypass the main ERP shell
   const isAuthPage =
     pathname === "/login" ||
