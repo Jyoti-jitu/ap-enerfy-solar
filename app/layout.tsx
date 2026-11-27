@@ -27,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full">
-      <body className="h-full bg-[#f8fafc] text-slate-900 font-sans antialiased">
+    <html lang="en" className="h-full" suppressHydrationWarning>
+      <body className="h-full bg-[#f8fafc] text-slate-900 font-sans antialiased" suppressHydrationWarning>
         <Suspense fallback={null}>
           <NavigationProgress />
         </Suspense>

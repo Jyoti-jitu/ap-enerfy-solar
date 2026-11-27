@@ -248,6 +248,7 @@ export function CreateInvoiceClient({ customers }: CreateInvoiceClientProps) {
               value={invoiceDate}
               onChange={(e) => setInvoiceDate(e.target.value)}
               className="h-9 text-xs"
+              suppressHydrationWarning
               required
             />
           </div>
@@ -259,6 +260,7 @@ export function CreateInvoiceClient({ customers }: CreateInvoiceClientProps) {
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
               className="h-9 text-xs"
+              suppressHydrationWarning
               required
             />
           </div>

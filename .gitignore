@@ -43,3 +43,4 @@ Thumbs.db
 .vscode/
 tsconfig.tsbuildinfo
 .env*
+text.txt
