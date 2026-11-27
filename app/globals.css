@@ -1,0 +1,233 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 8%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 8%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 8%;
+
+    --primary: 142 71% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 8%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 220 30% 20%;
+
+    --accent: 45 93% 47%;
+    --accent-foreground: 24 9.8% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 88%;
+    --input: 214.3 31.8% 88%;
+    --ring: 142 71% 45%;
+
+    --radius: 0.75rem;
+
+    --sidebar-bg: #0b1f1a;
+    --sidebar-fg: #f1f5f9;
+    --sidebar-muted: #94a3b8;
+    --sidebar-hover: #132d26;
+    --sidebar-active: #16a34a;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body {
+    min-height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    @apply bg-background text-foreground antialiased selection:bg-emerald-500/20 selection:text-emerald-900;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    color: #0f172a;
+  }
+}
+
+/* Custom scrollbar for clean dashboard tables and sidebar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* =========================================================================
+   HIGH-CONTRAST GLOBAL TEXT COLOR RULES
+   Enforces deep, highly visible text on all light surfaces as per UI references
+   without affecting the dark navy-green sidebar or dark login hero panel.
+========================================================================= */
+
+/* Headings on light surfaces */
+.app-main-content h1,
+.app-main-content h2,
+.app-main-content h3,
+.app-main-content h4,
+.app-main-content h5,
+.app-main-content h6,
+header h1,
+header h2,
+header h3,
+.login-form-panel h1,
+.login-form-panel h2,
+.login-form-panel h3,
+[role="dialog"] h1,
+[role="dialog"] h2,
+[role="dialog"] h3,
+[role="dialog"] h4 {
+  color: #09090b !important;
+  font-weight: 700;
+}
+
+/* Table header & body styling across all pages */
+.app-main-content table thead tr,
+[role="dialog"] table thead tr {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.app-main-content table th,
+[role="dialog"] table th {
+  color: #09090b !important;
+  font-weight: 700 !important;
+  border-bottom: 1px solid #cbd5e1 !important;
+}
+
+.app-main-content table td,
+[role="dialog"] table td {
+  color: #0f172a !important;
+  font-weight: 500;
+}
+
+.app-main-content table td a {
+  color: #09090b;
+}
+
+.app-main-content table td a:hover {
+  color: #059669;
+}
+
+/* Form labels across all pages and modals */
+.app-main-content label,
+header label,
+.login-form-panel label,
+[role="dialog"] label {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+/* Form inputs, select dropdowns, and textareas */
+.app-main-content input:not([type="checkbox"]):not([type="radio"]),
+.app-main-content select,
+.app-main-content textarea,
+header input,
+.login-form-panel input:not([type="checkbox"]):not([type="radio"]),
+.login-form-panel select,
+.login-form-panel textarea,
+[role="dialog"] input:not([type="checkbox"]):not([type="radio"]),
+[role="dialog"] select,
+[role="dialog"] textarea {
+  color: #09090b !important;
+  font-weight: 500;
+}
+
+/* Input placeholder text: visible charcoal instead of washed-out gray */
+.app-main-content input::placeholder,
+.app-main-content textarea::placeholder,
+header input::placeholder,
+.login-form-panel input::placeholder,
+.login-form-panel textarea::placeholder,
+[role="dialog"] input::placeholder,
+[role="dialog"] textarea::placeholder {
+  color: #475569 !important;
+  opacity: 1;
+}
+
+/* High-contrast overrides for muted utility classes on light surfaces */
+.app-main-content .text-slate-400:not(button.bg-emerald-600 *):not(button.bg-slate-900 *):not(.text-white *),
+.login-form-panel .text-slate-400:not(button.bg-emerald-600 *):not(button.bg-slate-900 *):not(.text-white *),
+header .text-slate-400:not(aside *),
+[role="dialog"] .text-slate-400 {
+  color: #475569 !important;
+}
+
+.app-main-content .text-slate-500:not(button.bg-emerald-600 *):not(button.bg-slate-900 *):not(.text-white *),
+.login-form-panel .text-slate-500:not(button.bg-emerald-600 *):not(button.bg-slate-900 *):not(.text-white *),
+header .text-slate-500:not(aside *),
+[role="dialog"] .text-slate-500 {
+  color: #1e293b !important;
+}
+
+.app-main-content .text-slate-600:not(button.bg-emerald-600 *):not(button.bg-slate-900 *):not(.text-white *),
+.login-form-panel .text-slate-600:not(button.bg-emerald-600 *):not(button.bg-slate-900 *):not(.text-white *),
+header .text-slate-600:not(aside *),
+[role="dialog"] .text-slate-600 {
+  color: #0f172a !important;
+}
+
+.app-main-content .text-slate-700:not(button.bg-emerald-600 *):not(button.bg-slate-900 *):not(.text-white *),
+.login-form-panel .text-slate-700:not(button.bg-emerald-600 *):not(button.bg-slate-900 *):not(.text-white *),
+header .text-slate-700:not(aside *),
+[role="dialog"] .text-slate-700 {
+  color: #09090b !important;
+}
+
+.app-main-content .text-gray-400:not(button.bg-emerald-600 *):not(.text-white *),
+.login-form-panel .text-gray-400,
+[role="dialog"] .text-gray-400 {
+  color: #475569 !important;
+}
+
+.app-main-content .text-gray-500:not(button.bg-emerald-600 *):not(.text-white *),
+.login-form-panel .text-gray-500,
+[role="dialog"] .text-gray-500 {
+  color: #1e293b !important;
+}
+
+.app-main-content .text-gray-600:not(button.bg-emerald-600 *):not(.text-white *),
+.login-form-panel .text-gray-600,
+[role="dialog"] .text-gray-600 {
+  color: #0f172a !important;
+}
+
+.app-main-content .text-muted-foreground,
+.login-form-panel .text-muted-foreground,
+[role="dialog"] .text-muted-foreground {
+  color: #1e293b !important;
+}
+
+/* Page subtitles */
+.app-main-content p.text-slate-500,
+.app-main-content p.text-slate-600 {
+  color: #1e293b !important;
+  font-weight: 500;
+}
