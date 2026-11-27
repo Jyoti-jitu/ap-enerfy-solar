@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { Receipt, X, Loader2 } from "lucide-react";
 import { SYSTEM_TYPES, INVOICE_TYPES } from "@/lib/constants";
 import { formatCurrency } from "@/lib/utils";
+import {
+  CustomerSelectCombobox,
+  CustomerOption,
+  NewCustomerFormState,
+} from "@/components/invoices/customer-select-combobox";
 
 export function CreateInvoiceModal({
   isOpen,
@@ -19,6 +24,20 @@ export function CreateInvoiceModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [customers, setCustomers] = useState<any[]>([]);
+
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerOption | null>(null);
+  const [isNewCustomer, setIsNewCustomer] = useState(false);
+  const [newCustomerData, setNewCustomerData] = useState<NewCustomerFormState>({
+    name: "",
+    mobile: "",
+    email: "",
+    address: "",
+    city: "Bhubaneswar",
+    state: "Odisha",
+    pincode: "",
+    gstin: "",
+    customerType: "residential",
+  });
 
   const [formData, setFormData] = useState({
     customerId: "",
@@ -37,9 +56,10 @@ export function CreateInvoiceModal({
       fetch("/api/customers")
         .then((res) => res.json())
         .then((data) => {
-          if (data?.customers) {
+          if (data?.customers && data.customers.length > 0) {
             setCustomers(data.customers);
-            if (data.customers.length > 0 && !formData.customerId) {
+            if (!selectedCustomer && !isNewCustomer) {
+              setSelectedCustomer(data.customers[0]);
               setFormData((prev) => ({ ...prev, customerId: data.customers[0].id }));
             }
           }
@@ -60,10 +80,27 @@ export function CreateInvoiceModal({
     setError(null);
 
     try {
+      const payload: any = { ...formData };
+      if (isNewCustomer) {
+        if (!newCustomerData.name.trim()) {
+          throw new Error("Customer name is required");
+        }
+        if (!newCustomerData.mobile.trim()) {
+          throw new Error("Customer mobile is required");
+        }
+        payload.customerId = "new";
+        payload.newCustomer = {
+          ...newCustomerData,
+          solarCapacity: Number(formData.capacity || 3),
+        };
+      } else if (selectedCustomer) {
+        payload.customerId = selectedCustomer.id;
+      }
+
       const res = await fetch("/api/invoices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -112,25 +149,25 @@ export function CreateInvoiceModal({
         )}
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4 text-xs">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block font-medium text-slate-700 mb-1">
-                Select Customer *
-              </label>
-              <select
-                required
-                value={formData.customerId}
-                onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
-                className="w-full h-9 rounded-lg border border-slate-200 px-3 text-slate-800 focus:border-emerald-600 focus:outline-none bg-white"
-              >
-                {customers.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.customerId})
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Customer Typeahead & Quick Create */}
+          <div>
+            <CustomerSelectCombobox
+              customers={customers}
+              selectedCustomer={selectedCustomer}
+              onSelectCustomer={(c) => {
+                setSelectedCustomer(c);
+                if (c) setFormData((prev) => ({ ...prev, customerId: c.id }));
+              }}
+              isNewCustomer={isNewCustomer}
+              onToggleNewCustomer={setIsNewCustomer}
+              newCustomerData={newCustomerData}
+              onChangeNewCustomer={(patch) =>
+                setNewCustomerData((prev) => ({ ...prev, ...patch }))
+              }
+            />
+          </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-medium text-slate-700 mb-1">
                 Invoice Type

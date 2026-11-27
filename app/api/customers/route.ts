@@ -20,11 +20,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    if (!body.name || !body.mobile) {
-      return NextResponse.json({ error: "Name and Mobile are required" }, { status: 400 });
+    if (!body.name?.trim()) {
+      return NextResponse.json({ error: "Customer name is required" }, { status: 400 });
     }
 
-    const customer = await createCustomer(body);
+    const customer = await createCustomer({
+      ...body,
+      mobile: body.mobile?.trim() || "98000 00000",
+    });
     return NextResponse.json(customer, { status: 201 });
   } catch (error) {
     console.error("Failed to create customer:", error);

@@ -19,14 +19,11 @@ import { Label } from "@/components/ui/label";
 import { formatINR } from "@/components/invoices/invoice-constants";
 import { calculateInvoice, LineItemInput } from "@/lib/invoices/calculate-invoice";
 import { amountInWords } from "@/lib/invoices/amount-in-words";
-
-interface CustomerOption {
-  id: string;
-  name: string;
-  city: string;
-  state: string;
-  solarCapacity?: string | null;
-}
+import {
+  CustomerSelectCombobox,
+  CustomerOption,
+  NewCustomerFormState,
+} from "@/components/invoices/customer-select-combobox";
 
 interface CreateInvoiceClientProps {
   customers: CustomerOption[];
@@ -37,10 +34,27 @@ export function CreateInvoiceClient({ customers }: CreateInvoiceClientProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [customerId, setCustomerId] = useState(customers[0]?.id || "");
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerOption | null>(
+    customers[0] || null
+  );
+  const [isNewCustomer, setIsNewCustomer] = useState(false);
+  const [newCustomerData, setNewCustomerData] = useState<NewCustomerFormState>({
+    name: "",
+    mobile: "",
+    email: "",
+    address: "",
+    city: "Bhubaneswar",
+    state: "Odisha",
+    pincode: "",
+    gstin: "",
+    customerType: "residential",
+  });
+
   const [invoiceType, setInvoiceType] = useState("Tax Invoice");
   const [systemType, setSystemType] = useState("On-Grid");
-  const [capacity, setCapacity] = useState("3.00");
+  const [capacity, setCapacity] = useState(
+    customers[0]?.solarCapacity ? String(customers[0].solarCapacity) : "3.00"
+  );
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split("T")[0]);
   const [dueDate, setDueDate] = useState(
     new Date(Date.now() + 15 * 86400000).toISOString().split("T")[0]
@@ -71,11 +85,16 @@ export function CreateInvoiceClient({ customers }: CreateInvoiceClientProps) {
     },
   ]);
 
-  const selectedCustomer = customers.find((c) => c.id === customerId);
+  const activeCustomerState = isNewCustomer
+    ? newCustomerData.state
+    : selectedCustomer?.state || "Odisha";
+
   const isInterState =
-    selectedCustomer &&
-    selectedCustomer.state.trim().toLowerCase() !== "odisha" &&
-    selectedCustomer.state.trim().toLowerCase() !== "";
+    Boolean(
+      activeCustomerState &&
+      activeCustomerState.trim().toLowerCase() !== "odisha" &&
+      activeCustomerState.trim().toLowerCase() !== ""
+    );
 
   const calculations = calculateInvoice({
     items,
@@ -83,6 +102,13 @@ export function CreateInvoiceClient({ customers }: CreateInvoiceClientProps) {
   });
 
   const words = amountInWords(calculations.grandTotal);
+
+  const handleSelectCustomer = (cust: CustomerOption | null) => {
+    setSelectedCustomer(cust);
+    if (cust?.solarCapacity) {
+      setCapacity(String(cust.solarCapacity));
+    }
+  };
 
   const handleAddItem = () => {
     setItems((prev) => [
@@ -113,10 +139,22 @@ export function CreateInvoiceClient({ customers }: CreateInvoiceClientProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerId) {
-      setError("Please select a customer");
+
+    if (!isNewCustomer && !selectedCustomer) {
+      setError("Please search and select a customer, or enter a new customer");
       return;
     }
+
+    if (isNewCustomer && !newCustomerData.name.trim()) {
+      setError("Please enter the new customer's name");
+      return;
+    }
+
+    if (isNewCustomer && !newCustomerData.mobile.trim()) {
+      setError("Please enter the new customer's mobile number");
+      return;
+    }
+
     if (items.length === 0) {
       setError("Please add at least one line item");
       return;
@@ -126,8 +164,7 @@ export function CreateInvoiceClient({ customers }: CreateInvoiceClientProps) {
       setSubmitting(true);
       setError(null);
 
-      const payload = {
-        customerId,
+      const payload: any = {
         invoiceType,
         systemType,
         capacity: parseFloat(capacity) || 3.0,
@@ -146,6 +183,24 @@ export function CreateInvoiceClient({ customers }: CreateInvoiceClientProps) {
           taxRate: Number(it.gstRate) || 5,
         })),
       };
+
+      if (isNewCustomer) {
+        payload.customerId = "new";
+        payload.newCustomer = {
+          name: newCustomerData.name.trim(),
+          mobile: newCustomerData.mobile.trim(),
+          email: newCustomerData.email.trim(),
+          address: newCustomerData.address.trim() || `${newCustomerData.city}, ${newCustomerData.state}`,
+          city: newCustomerData.city.trim() || "Bhubaneswar",
+          state: newCustomerData.state.trim() || "Odisha",
+          pincode: newCustomerData.pincode.trim(),
+          gstin: newCustomerData.gstin.trim(),
+          customerType: newCustomerData.customerType || "residential",
+          solarCapacity: parseFloat(capacity) || 3.0,
+        };
+      } else {
+        payload.customerId = selectedCustomer!.id;
+      }
 
       const res = await fetch("/api/invoices", {
         method: "POST",
@@ -210,23 +265,20 @@ export function CreateInvoiceClient({ customers }: CreateInvoiceClientProps) {
           Invoice & Customer Details
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-          <div>
-            <Label className="text-xs text-slate-600 mb-1 block">Customer *</Label>
-            <select
-              value={customerId}
-              onChange={(e) => setCustomerId(e.target.value)}
-              className="w-full h-9 px-3 rounded-md border border-slate-300 bg-white text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#145C32]"
-              required
-            >
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} ({c.city}, {c.state})
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Customer Autocomplete & Quick Create */}
+        <CustomerSelectCombobox
+          customers={customers}
+          selectedCustomer={selectedCustomer}
+          onSelectCustomer={handleSelectCustomer}
+          isNewCustomer={isNewCustomer}
+          onToggleNewCustomer={setIsNewCustomer}
+          newCustomerData={newCustomerData}
+          onChangeNewCustomer={(patch) =>
+            setNewCustomerData((prev) => ({ ...prev, ...patch }))
+          }
+        />
 
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-1">
           <div>
             <Label className="text-xs text-slate-600 mb-1 block">Document Type</Label>
             <select

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getInvoices, createInvoice } from "@/services/invoice.service";
+import { createCustomer } from "@/services/customer.service";
 import { getCurrentUser } from "@/lib/auth-guard";
 import { hasPermission } from "@/lib/rbac";
 
@@ -35,12 +36,41 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    if (!body.customerId || !body.taxableAmount) {
-      return NextResponse.json({ error: "Customer and Taxable Amount are required" }, { status: 400 });
+
+    let targetCustomerId = body.customerId;
+
+    // If user typed a new customer, create the customer first
+    if ((!targetCustomerId || targetCustomerId === "new") && body.newCustomer) {
+      if (!body.newCustomer.name?.trim()) {
+        return NextResponse.json({ error: "Customer name is required" }, { status: 400 });
+      }
+
+      const createdCust = await createCustomer({
+        name: body.newCustomer.name,
+        mobile: body.newCustomer.mobile,
+        email: body.newCustomer.email,
+        customerType: body.newCustomer.customerType || "residential",
+        solarCapacity: Number(body.capacity || body.newCustomer.solarCapacity || 3.0),
+        address: body.newCustomer.address,
+        city: body.newCustomer.city || "Bhubaneswar",
+        state: body.newCustomer.state || "Odisha",
+        pincode: body.newCustomer.pincode,
+        gstin: body.newCustomer.gstin,
+      });
+
+      targetCustomerId = createdCust.id;
+    }
+
+    if (!targetCustomerId || !body.taxableAmount) {
+      return NextResponse.json(
+        { error: "Valid Customer and Taxable Amount are required" },
+        { status: 400 }
+      );
     }
 
     const invoice = await createInvoice({
       ...body,
+      customerId: targetCustomerId,
       invoiceDate: new Date(body.invoiceDate || Date.now()),
       dueDate: new Date(body.dueDate || Date.now() + 15 * 86400000),
     });

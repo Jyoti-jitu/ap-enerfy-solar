@@ -73,38 +73,61 @@ export async function getCustomers(filters: CustomerFilters = {}) {
 
 export async function createCustomer(data: {
   name: string;
-  mobile: string;
+  mobile?: string;
   email?: string;
-  customerType: string;
-  solarCapacity: number;
+  customerType?: string;
+  solarCapacity?: number;
   projectStatus?: string;
   address?: string;
-  city: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
   gstin?: string;
   discomName?: string;
   consumerNumber?: string;
   outstandingAmount?: number;
 }) {
-  const countRes = await db.select({ count: sql<number>`count(*)` }).from(schema.customers);
-  const currentCount = Number(countRes[0]?.count || 0) + 1;
-  const customerId = `CUST-${String(currentCount).padStart(4, "0")}`;
+  // Query all customer IDs to find the max CUST-XXXX numeric suffix to prevent duplicate key collisions
+  const existingRecords = await db
+    .select({ customerId: schema.customers.customerId })
+    .from(schema.customers);
+
+  let maxNum = 250;
+  for (const rec of existingRecords) {
+    const match = rec.customerId?.match(/CUST-(\d+)/i);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (!isNaN(num) && num > maxNum) {
+        maxNum = num;
+      }
+    }
+  }
+
+  const nextNum = maxNum + 1;
+  const customerId = `CUST-${String(nextNum).padStart(4, "0")}`;
+
+  const cityName = data.city?.trim() || "Bhubaneswar";
+  const stateName = data.state?.trim() || "Odisha";
+  const addressText = data.address?.trim() || `${cityName}, ${stateName}`;
 
   const [customer] = await db
     .insert(schema.customers)
     .values({
       customerId,
-      name: data.name,
-      mobile: data.mobile,
-      email: data.email,
+      name: data.name.trim(),
+      mobile: data.mobile?.trim() || "98000 00000",
+      email: data.email?.trim() || null,
       customerType: data.customerType || "residential",
-      solarCapacity: String(data.solarCapacity || 3),
+      solarCapacity: String(data.solarCapacity || 3.0),
       projectStatus: data.projectStatus || "survey_done",
       outstandingAmount: String(data.outstandingAmount || 0),
-      city: data.city || "Bhubaneswar",
-      address: data.address,
-      gstin: data.gstin,
+      city: cityName,
+      state: stateName,
+      pincode: data.pincode?.trim() || null,
+      address: addressText,
+      gstin: data.gstin?.trim() || null,
       discomName: data.discomName || "TPCODL",
-      consumerNumber: data.consumerNumber,
+      consumerNumber: data.consumerNumber || null,
     })
     .returning();
 
