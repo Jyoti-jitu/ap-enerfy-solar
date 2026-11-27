@@ -34,9 +34,7 @@ export function CreateInvoiceClient({ customers }: CreateInvoiceClientProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerOption | null>(
-    customers[0] || null
-  );
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerOption | null>(null);
   const [isNewCustomer, setIsNewCustomer] = useState(false);
   const [newCustomerData, setNewCustomerData] = useState<NewCustomerFormState>({
     name: "",
@@ -52,9 +50,7 @@ export function CreateInvoiceClient({ customers }: CreateInvoiceClientProps) {
 
   const [invoiceType, setInvoiceType] = useState("Tax Invoice");
   const [systemType, setSystemType] = useState("On-Grid");
-  const [capacity, setCapacity] = useState(
-    customers[0]?.solarCapacity ? String(customers[0].solarCapacity) : "3.00"
-  );
+  const [capacity, setCapacity] = useState("3.00");
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split("T")[0]);
   const [dueDate, setDueDate] = useState(
     new Date(Date.now() + 15 * 86400000).toISOString().split("T")[0]

@@ -58,10 +58,6 @@ export function CreateInvoiceModal({
         .then((data) => {
           if (data?.customers && data.customers.length > 0) {
             setCustomers(data.customers);
-            if (!selectedCustomer && !isNewCustomer) {
-              setSelectedCustomer(data.customers[0]);
-              setFormData((prev) => ({ ...prev, customerId: data.customers[0].id }));
-            }
           }
         })
         .catch(console.error);
@@ -80,6 +76,10 @@ export function CreateInvoiceModal({
     setError(null);
 
     try {
+      if (!isNewCustomer && !selectedCustomer) {
+        throw new Error("Please search and select a customer, or enter a new customer");
+      }
+
       const payload: any = { ...formData };
       if (isNewCustomer) {
         if (!newCustomerData.name.trim()) {
